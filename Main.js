@@ -22,14 +22,14 @@ var Relationship = function(id, rel, line, coords, value,from,to,data){
 	this.coords = coords;
 	this.value = value;
 	this.from = from;
-	this.to = to;	
+	this.to = to;
 	this.data=data;
 }
 
 var ShapeConstants = function(){
 }
 ShapeConstants.lineSize = 150;
-ShapeConstants.rSize = {width:70,height:30};	
+ShapeConstants.rSize = {width:70,height:30};
 ShapeConstants.boxFill = [159,186,253];
 ShapeConstants.font = {family: "Times", size: "10pt", weight: "bold"};
 ShapeConstants.textFill =  "black";
@@ -43,21 +43,21 @@ var Node = function(id,surface,coords,parent,url,data){
 	this.id = id;
 	this.surface=surface;
 	this.coords=coords;
-	
+
 	this.rect;
 	this.text;
 	this.group;
-	
+
 	this.parent = parent;
 	this.node = this;
-	
+
 	this.relationships = new dojox.collections.ArrayList();
 	this.url=url;
 	this.data = data;
 	this.textVal = data;
 	this.div;
 	this.pMenu;
-	
+
 }
 
 Node.prototype.getData = function(){
@@ -65,18 +65,18 @@ Node.prototype.getData = function(){
 
 Node.prototype.createNode = function(){
 	var rectCoords = getRectCoords(this.coords);
-	
+
 	this.group = this.surface.createGroup();
 	this.group.getEventSource().setAttribute("id","group_"+this.id);
-	
+
 	this.text = this.group.createText({x: rectCoords.x+3,y: rectCoords.y + 18, text: this.textVal, align: "center"});
 	this.text.setFill(ShapeConstants.textFill);
 	this.text.setFont(ShapeConstants.font);
-	this.text.getEventSource().setAttribute("id","text_"+this.id); 
+	this.text.getEventSource().setAttribute("id","text_"+this.id);
 
 	var textWidth = this.text.getTextWidth();
 	var color = ShapeConstants.boxFill;
-	
+
 	/*if(this.id == "706120516930075047"){
 		color = ShapeConstants.colors.startNode;
 	}*/
@@ -85,8 +85,8 @@ Node.prototype.createNode = function(){
 	this.rect.getEventSource().setAttribute("id","rect_"+this.id);
 	this.rect.moveToFront();
 	this.text.moveToFront();
-	new dojox.gfx.Moveable(this.group); 
-	
+	new dojox.gfx.Moveable(this.group);
+
 	//if(!dojo.byId("menu_"+this.id)){
 		this.pMenu = new dijit.Menu({targetNodeIds:["group_"+this.id], id:"menu_"+this.id});
 		this.pMenu.addChild(new dijit.MenuItem({label:"View party relaitonships", id:this.id, onClick:function(){fetchRelations(this.id)}}));
@@ -94,13 +94,13 @@ Node.prototype.createNode = function(){
 		this.pMenu.addChild(new dijit.MenuItem({label:"View party details", id:"disp_"+this.id, onClick:function(){displayPartyDetails(this.id)}}));
 		//this.pMenu.addChild(new dijit.MenuItem({label:"Hide", id:"remove_"+this.id, onClick:function(){hidePartyDetails(this.id)}}));
 	//} else {
-	//	pMenu = dojo.byId("menu_"+this.id);	
+	//	pMenu = dojo.byId("menu_"+this.id);
 	//}
 
 	dojo.connect(this.text.getEventSource(),"onclick",fetchRelations);
 	dojo.connect(this.group.getEventSource(),"onmousedown",trackMouseDown);
 	dojo.connect(this.group.getEventSource(),"onmousemove",trackMouseMove);
-	dojo.connect(this.group.getEventSource(),"onmouseup",trackMouseUp);  
+	dojo.connect(this.group.getEventSource(),"onmouseup",trackMouseUp);
 
 }
 
@@ -115,16 +115,16 @@ function trackMouseUp(evt){
 function trackMouseMove(evt){
 
 	if(dragStart){
-		
+
 		var node = getNode(splitId(evt.target.id));
-		
+
 		var tempCenter = node.coords;
 		var coords = getTransformation(node);
 		var dx = coords.x;
 		var dy = coords.y;
-		
+
 		var newC = {x: coords.cx,y: coords.cy};
-		
+
 		var relationships = node.relationships;
 
 		var itr = relationships.getIterator();
@@ -134,41 +134,41 @@ function trackMouseMove(evt){
 			var rel = itr.get();
 			var line = rel.line;
 			var id = rel.id;
-			var json = rel.data;		
-			
+			var json = rel.data;
+
 			var temp = getRelationship(id);
-			
+
 			if(!temp){
 				continue;
 			}
 			var lineCoords = rel.coords;
 			var x1 = lineCoords.x1;var y1 = lineCoords.y1;
 			var x2 = lineCoords.x2;var y2 = lineCoords.y2;
-			
+
 			var newCoords;
 			if(Math.round(tempCenter.x) == x1 && Math.round(tempCenter.y) == y1){
 				x1 = newC.x;y1 = newC.y;
 			} else if (Math.round(tempCenter.x) == x2 && Math.round(tempCenter.y) == y2){
 				x2 = newC.x;y2 = newC.y;
 			}
-			
+
 			line.removeShape(true);
-			
+
             var type = 14;
-            
+
 			var index = 0;
 			if(type <= 11){
-				index = 0;	
+				index = 0;
 			} else if (type >= 15 && type <= 18){
 				index = 1;
 			} else if(type == 14) {
-				index = 2;	
+				index = 2;
 			} else {
-				index = 3;	
+				index = 3;
 			}
 			var style = styles[index];
 			ShapeConstants.lineStyle.style = style;
-			
+
 			line = surface.createLine({"x1":x1,"y1":y1,"x2":x2,"y2":y2}).setStroke(ShapeConstants.lineStyle);
 			line.getEventSource().setAttribute("id",id);
 			line.moveToBack();
@@ -177,9 +177,9 @@ function trackMouseMove(evt){
 //			dojo.connect(line.getEventSource(),"onmouseout",hideRelationship);
 
 			rel.line = line;
-			
+
 			rel.coords = {x1:x1,y1:y1,x2:x2,y2:y2};
-			index++;	
+			index++;
 		}
 	}
 }
@@ -192,7 +192,7 @@ function fetchRelations(e){
 	var node = getNode(nodeId);
 	var url = partyRelURL+splitId(nodeId);
 	console.debug("url " + url);
-	
+
 	/*var val = dojo.xhrGet({
 		url: url,
         handleAs: "xml",
@@ -202,22 +202,22 @@ function fetchRelations(e){
 	        fetchRelationships(e,memberArr);
         }
 	});*/
-    
+
     if (nodeId % 3 == 0) {
-        
+
         memberArr = new Array ("8", "9", "10");
     }
-    
+
     else if (nodeId % 2 == 0) {
-    
+
         memberArr = new Array ("5", "6", "7");
     }
-    
+
     else {
-        
+
         memberArr = new Array ("1", "2", "3", "4");
     }
-    
+
     fetchRelationships (e,memberArr);
 }
 
@@ -232,9 +232,9 @@ function fetchChildren(e,data){
 	//var node = getNode(splitId(nodeId));
 	var node = getNode(nodeId);
 	var len = data.length;
-	
+
 	var degrees = 360/len;
-	var degree = 0; 
+	var degree = 0;
 
 	var cx,cy;
 	if(node){
@@ -243,7 +243,7 @@ function fetchChildren(e,data){
 	}
 
 	for(var i=0;i<len;i++){
-	
+
 		degree += degrees;
 
 		/*var memberHref = data[i].getAttribute("href");
@@ -263,7 +263,7 @@ function call(e,coords,degree,href){
 	        buildRelationship(e,response,coords,degree);
         }
 		});*/
-        
+
         buildRelationship(e,href,coords,degree);
 }
 
@@ -275,50 +275,50 @@ function buildRelationship(e,json,coords,degree){
 //	var node = getNode(splitId(nodeId));
 	var node = getNode(nodeId);
 	cx = node.coords.x;cy=node.coords.y;
-	var xp = Math.round(cx + (ShapeConstants.lineSize * Math.cos((degree * Math.PI)/180))); 
-	var yp = Math.round(cy + (ShapeConstants.lineSize * Math.sin((degree * Math.PI)/180))); 
-	
+	var xp = Math.round(cx + (ShapeConstants.lineSize * Math.cos((degree * Math.PI)/180)));
+	var yp = Math.round(cy + (ShapeConstants.lineSize * Math.sin((degree * Math.PI)/180)));
+
 	var relationshipText="";
-    
+
 	if(json != null){
-	
+
 		relationshipText += json;
-        
+
         fromPartyId = nodeId;
-        
+
         toPartyId = json;
     }
 
 	/*else {
-	
-		//changeonce sushain changes the code .. from and to 
+
+		//changeonce sushain changes the code .. from and to
 		fromPartyId = json.TCRMPartyRelationshipBObj.RelationshipToPartyId;
 		toPartyId = json.TCRMPartyRelationshipBObj.RelationshipFromPartyId;
 		relationshipText = json.TCRMPartyRelationshipBObj.RelationshipValue;
 	}*/
-    
+
     var type = 14;
-    
+
 	var index = 0;
 	if(type <= 11){
-		index = 0;	
+		index = 0;
 	} else if (type >= 15 && type <= 18){
 		index = 1;
 	} else if(type == 14) {
-		index = 2;	
+		index = 2;
 	} else {
-		index = 3;	
+		index = 3;
 	}
-    
+
     console.debug ("index" + index);
-    
+
 	var style = styles[index];
 	ShapeConstants.lineStyle.style = style;
-	
+
 	var relId = fromPartyId+"_"+toPartyId;
 	if(getRelationship(relId))
 		return;
-	
+
 	var n = getNode(toPartyId);
 
 	var flag = true;
@@ -330,29 +330,29 @@ function buildRelationship(e,json,coords,degree){
 	}
 
 	var lineCoords = {"x1":cx,"y1":cy,"x2":xp,"y2":yp};
-	
+
 	if(xp <= 8 && yp >= 8){
-		xp = 8;	
+		xp = 8;
 	} else if(xp >=8 && yp <= 8){
-		yp = 8;	
+		yp = 8;
 	} else if(xp <= 8 && yp <= 8){
-		xp=8;yp=8;	
+		xp=8;yp=8;
 	} else if(xp >= screen.width-8 && yp <= screen.height-8){
-		xp = screen.width-15;	
+		xp = screen.width-15;
 	} else if(xp <= screen.width-8 && yp >= screen.height-8){
-		yp = screen.height-15;	
+		yp = screen.height-15;
 	} else if(xp >= screen.width-8 && yp >= screen.height-8){
-		xp = screen.width-15;	
-		yp = screen.height-15;	
+		xp = screen.width-15;
+		yp = screen.height-15;
 	}
-	
+
 	var line = surface.createLine(lineCoords).setStroke(ShapeConstants.lineStyle);
 	line.getEventSource().setAttribute("id",relId);
 	line.moveToBack();
 //	dojo.connect(line.getEventSource(),"onmouseover",displayRelationShip);
 	dojo.connect(line.getEventSource(),"onclick",displayRelationShip);
 //	dojo.connect(line.getEventSource(),"onmouseout",hideRelationship);
-	
+
 	var rel = new Relationship(relId,null,line,lineCoords,relationshipText,fromPartyId,toPartyId,json);
 	relationships.add(rel);
 
@@ -361,23 +361,23 @@ function buildRelationship(e,json,coords,degree){
 	else {
 		n.relationships.add(rel);
 	}
-	
+
 	node.relationships.add(rel);
 }
 
 function displayRelationShip(evt){
-	
+
 	var id = evt.target.id;
 	console.debug("Party Id : " + id);
-	
+
 	var line = dojo.byId(id);
-	
+
 	var rel = getRelationship(id);
 	showPopup(rel);
 }
 
 function getTransformation(obj){
-	
+
 	var rect = obj.rect;
 	var coords = rect.getTransformedBoundingBox();
 	var cx = coords[0].x+((coords[1].x - coords[0].x)/2);
@@ -388,10 +388,10 @@ function getTransformation(obj){
 }
 
 function splitId(str){
-	
+
 	var temp = str.split("_");
 	var id = temp[temp.length-1];
-	
+
 	return id;
 }
 
@@ -399,39 +399,39 @@ function getRectCoords(coords){
 	var node = getNode(id);
 	var x = coords.x - (ShapeConstants.rSize.width/2);
 	var y = coords.y - (ShapeConstants.rSize.height/2);
-	
+
 	return {x:x,y:y};
 }
 
 function getCenter(rect) {
-	
+
 	var x = Math.round(rect.shape.x + (rect.shape.width/2));
 	var y = Math.round(rect.shape.y + (rect.shape.height/2));
-	
+
 	return {x:x,y:y};
 }
 
 function getCenterForCoords(coords) {
-	
+
 	var x = Math.round(coords.dx + (ShapeConstants.rSize.width/2));
 	var y = Math.round(coords.dy + (ShapeConstants.rSize.height/2));
-	
+
 	return {x:x,y:y};
 }
 
 function getNode(id){
-	
+
 	var itr = nodeList.getIterator();
 	var obj;
 	var temp;
-	
+
 	while(!itr.atEnd()){
 		obj = itr.get();
 		if(obj.id == id){
 			temp = obj;
-		}	
+		}
 	}
-	
+
 	return temp;
 }
 
@@ -439,16 +439,16 @@ function removeNode(id){
 	var itr = nodeList.getIterator();
 	var obj;
 	var temp;
-	var inc = 0;	
+	var inc = 0;
 	while(!itr.atEnd()){
 		obj = itr.get();
 		if(obj.id == id){
 			nodeList.removeAt(inc);
 			break;
-		}	
+		}
 		inc++;
 	}
-	
+
 }
 
 function removeRelationship(id){
@@ -456,7 +456,7 @@ function removeRelationship(id){
 	var itr = relationships.getIterator();
 	var obj;
 	var inc = 0;
-	
+
 	while(!itr.atEnd()){
 		obj = itr.get();
 		if(obj.id == id){
@@ -471,7 +471,7 @@ function getRelationship(id){
 
 	var itr = relationships.getIterator();
 	var obj;
-	
+
 	var temp = null;
 	while(!itr.atEnd()){
 		obj = itr.get();
@@ -479,20 +479,20 @@ function getRelationship(id){
 			temp = obj;
 		}
 	}
-	return temp;	
+	return temp;
 }
 
 function showPopup(rel){
-	
-	var div = document.getElementById("rel1");	
-	
+
+	var div = document.getElementById("rel1");
+
 	var x1 = rel.coords.x1;
 	var x2 = rel.coords.x2;
 	var y1 = rel.coords.y1;
 	var y2 = rel.coords.y2;
-	
+
 	var xp = x1 + (x2-x1)/2;
-	var yp = y1 + (y2-y1)/2; 
+	var yp = y1 + (y2-y1)/2;
 	div.style.top = yp;
 	div.style.left = xp;
 	div.style.visibility = "visible";
@@ -500,16 +500,16 @@ function showPopup(rel){
 }
 
 function hideRelationship(){
-	var div = document.getElementById("rel1");	
+	var div = document.getElementById("rel1");
 	div.style.visibility = "hidden";
 }
-//Move this code to loadParty
+
 loadPartyRelationship = function(id,url,coords,rel){
 	var progress = document.getElementById("indeterminateBar1");
 	progress.style.top = center.y;
 	progress.style.left = center.x;
 	progress.style.visibility = "visible";
-	
+
     /*var val = dojo.xhrGet({
 		url: "http://localhost:9083/MDMRestService/party/json/"+id,
         handleAs: "json",
@@ -518,7 +518,7 @@ loadPartyRelationship = function(id,url,coords,rel){
 	        createPartyRelNode(id,url,coords,response,rel);
         }
 	});*/
-    
+
     createPartyRelNode(id,url,coords,id+"",rel);
 }
 
@@ -568,42 +568,31 @@ displayPartyDetails = function(id){
 	var h = 100/2;
 	var x = node.coords.x - w;
 	var y = node.coords.y - h;
-	
+
 	div.style.top = y;
-	div.style.left = x; 
-	dojo.fadeIn({ node: 'div1', duration: 5000,onBegin: function(){div.style.visibility = "visible"} }).play(); 
-	//div.style.visibility = "visible"; 
+	div.style.left = x;
+	dojo.fadeIn({ node: 'div1', duration: 5000,onBegin: function(){div.style.visibility = "visible"} }).play();
 
 }
 
-/*hidePartyDetails = function(id){
-	
-	var node = getNode(splitId(id));	
+hidePartyDetails = function(id){
+
+	var node = getNode(splitId(id));
 	node.group.removeShape(true);
-	//node.pMenu = null;	
+	//node.pMenu = null;
 	var relationships = node.relationships;
 
 	var itr = relationships.getIterator();
 	var index = 0;
 	while(!itr.atEnd()){
-		
+
 		var rel = itr.get();
 		var line = rel.line;
 		removeRelationship(rel.id);
 		line.removeShape(true);
-		index++;	
+		index++;
 	}
 	removeNode(splitId(id));
 	//dojo._destroyElement(dojo.byId("menu_"+id));
-	
-}*/
 
-
-
-
-
-
-
-
-
-
+}
